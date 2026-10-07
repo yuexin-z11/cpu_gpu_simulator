@@ -1,0 +1,9 @@
+/build/
+/cmake-build-*/
+/compile_commands.json
+*.o
+*.a
+*.so
+*.exe
+__pycache__/
+*.pyc
