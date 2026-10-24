@@ -1,0 +1,9 @@
+{
+  "cpu":    { "alu_cycles": 1, "mul_cycles": 3, "div_cycles": 20, "branch_cycles": 1 },
+  "gpu":    { "num_warps": 4, "warp_size": 16 },
+  "cpu_l1": { "size_bytes": 4096,  "line_bytes": 64, "ways": 4, "hit_latency": 1 },
+  "gpu_l1": { "size_bytes": 8192,  "line_bytes": 64, "ways": 4, "hit_latency": 1 },
+  "l2":     { "size_bytes": 65536, "line_bytes": 64, "ways": 8, "hit_latency": 10 },
+  "dram":   { "latency": 100, "bytes_per_cycle": 16 },
+  "max_cycles": 100000000
+}
