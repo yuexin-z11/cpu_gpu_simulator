@@ -16,9 +16,24 @@ def main() -> None:
     with open(args.csv, newline="") as f:
         rows = list(csv.DictReader(f))
 
-    # TODO: plot measured speedup vs threads, with the ideal line y = x.
-    import matplotlib.pyplot as plt  # noqa: F401
-    print(f"read {len(rows)} rows; plotting not implemented yet")
+    if not rows:
+        ap.error("benchmark CSV has no data rows")
+
+    points = sorted((int(row["threads"]), float(row["speedup"])) for row in rows)
+    threads, speedups = zip(*points)
+
+    import matplotlib.pyplot as plt
+
+    fig, ax = plt.subplots()
+    ax.plot(threads, speedups, "o-", label="Measured")
+    ax.plot(threads, threads, "--", label="Ideal")
+    ax.set(xlabel="Workers", ylabel="Speedup", title="Sweep parallel speedup")
+    ax.set_xticks(threads)
+    ax.grid(True)
+    ax.legend()
+    fig.tight_layout()
+    fig.savefig(args.out)
+    plt.close(fig)
 
 
 if __name__ == "__main__":
