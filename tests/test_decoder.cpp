@@ -5,11 +5,26 @@ using namespace socsim;
 
 TEST(decode_addi) {
     // addi x1, x0, 5  ->  0x00500093
-    // TODO: enable once decode() is implemented.
-    // const DecodedInst d = decode(0x00500093);
-    // EXPECT(d.op == Op::Addi);
-    // EXPECT_EQ(d.rd, 1);
-    // EXPECT_EQ(d.imm, 5);
+    const DecodedInst d = decode(0x00500093);
+    EXPECT(d.op == Op::Addi);
+    EXPECT_EQ(d.rd, 1);
+    EXPECT_EQ(d.imm, 5);
+}
+
+TEST(decode_addi_negative) {
+    // addi x1, x0, -1  ->  0xFFF00093
+    const DecodedInst d = decode(0xFFF00093);
+    EXPECT(d.op == Op::Addi);
+    EXPECT_EQ(d.imm, -1);
+}
+
+TEST(decode_srai) {
+    // srai x1, x2, 3  ->  0x40315093
+    const DecodedInst d = decode(0x40315093);
+    EXPECT(d.op == Op::Srai);
+    EXPECT_EQ(d.rd, 1);
+    EXPECT_EQ(d.rs1, 2);
+    EXPECT_EQ(d.imm, 3);
 }
 
 TEST(op_class_groups) {

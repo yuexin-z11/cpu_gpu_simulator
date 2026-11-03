@@ -12,8 +12,8 @@ void FlatMemory::check(Addr a, std::uint32_t n) const {
     // add in 64 bits
     const std::uint64_t end = static_cast<std::uint64_t>(a) + n;
 
-    // Valid addresses are 0 .. size() - 1
-    if (end > bytes_.size()) {
+    // check valid addresses
+    if (a >= bytes_.size() || end > bytes_.size()) {
         throw std::out_of_range("memory access out of range: address " +
                                 std::to_string(a) + ", " + std::to_string(n) +
                                 " bytes, memory size " + std::to_string(bytes_.size()));
