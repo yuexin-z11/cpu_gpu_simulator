@@ -63,6 +63,66 @@ DecodedInst decode(Word raw) {
         }
     }
 
+    // store instructions
+    if (opcode == 0x23) {
+        d.imm = ((static_cast<std::int32_t>(raw) >> 20) & ~0x1F) | static_cast<std::int32_t>((raw >> 7) & 0x1F);
+        switch (funct3) {
+        // sb: store byte
+        case 0: d.op = Op::Sb; break;
+        // sh: store halfword
+        case 1: d.op = Op::Sh; break;
+        // sw: store word
+        case 2: d.op = Op::Sw; break;
+        default: break;
+        }
+    }
+
+    // register-register ALU
+    if (opcode == 0x33 && funct7 != 0x01) {
+        switch (funct3) {
+        // add: add (funct7 = 0x00), sub: subtract (funct7 = 0x20)
+        case 0: d.op = (funct7 == 0x20) ? Op::Sub : Op::Add; break;
+        // sll: shift left logical
+        case 1: d.op = Op::Sll;  break;
+        // slt: set less than (signed)
+        case 2: d.op = Op::Slt; break;
+        // sltu: set less than unsigned
+        case 3: d.op = Op::Sltu; break;
+        // xor: exclusive or
+        case 4: d.op = Op::Xor;  break;
+        // srl: shift right logical (funct7 = 0x00), sra: shift right arithmetic (funct7 = 0x20)
+        case 5: d.op = (funct7 == 0x20) ? Op::Sra : Op::Srl; break;
+        // or: or
+        case 6: d.op = Op::Or;   break;
+        // and: and
+        case 7: d.op = Op::And; break;
+        default: break;
+        }
+    }
+
+    // multiply and divide (M extension)
+    if (opcode == 0x33 && funct7 == 0x01) {
+        switch (funct3) {
+        // mul: multiply (low 32 bits)
+        case 0: d.op = Op::Mul;    break;
+        // mulh: multiply high (signed x signed)
+        case 1: d.op = Op::Mulh; break;
+        // mulhsu: multiply high (signed x unsigned)
+        case 2: d.op = Op::Mulhsu; break;
+        // mulhu: multiply high (unsigned x unsigned)
+        case 3: d.op = Op::Mulhu;  break;
+        // div: divide (signed)
+        case 4: d.op = Op::Div;  break;
+        // divu: divide unsigned
+        case 5: d.op = Op::Divu; break;
+        // rem: remainder (signed)
+        case 6: d.op = Op::Rem;    break;
+        // remu: remainder unsigned
+        case 7: d.op = Op::Remu; break;
+        default: break;
+        }
+    }
+
     return d;
 }
 

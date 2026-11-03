@@ -27,6 +27,15 @@ TEST(decode_srai) {
     EXPECT_EQ(d.imm, 3);
 }
 
+TEST(decode_sw_negative) {
+    // sw x5, -4(x2)  ->  0xFE512E23
+    const DecodedInst d = decode(0xFE512E23);
+    EXPECT(d.op == Op::Sw);
+    EXPECT_EQ(d.rs1, 2);   // base address register
+    EXPECT_EQ(d.rs2, 5);   // register holding the value to store
+    EXPECT_EQ(d.imm, -4);
+}
+
 TEST(op_class_groups) {
     EXPECT(op_class(Op::Mul) == OpClass::Mul);
     EXPECT(op_class(Op::Lw) == OpClass::Load);
