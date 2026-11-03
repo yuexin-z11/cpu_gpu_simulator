@@ -77,6 +77,7 @@ if(SOCSIM_BUILD_TESTS)
   add_executable(socsim_tests
     tests/test_main.cpp
     tests/test_decoder.cpp
+    tests/test_flat_memory.cpp
     tests/test_cache.cpp
     tests/test_coalescer.cpp
     tests/test_end_to_end.cpp

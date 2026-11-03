@@ -61,11 +61,12 @@ void FlatMemory::write32(Addr a, std::uint32_t v) {
     bytes_[a+3] = v >> 24;
 }
 
+// copies n bytes from data into memory starting at address a
 void FlatMemory::write_block(Addr a, const std::uint8_t* data, std::uint32_t n) {
-    // TODO
-    (void)a;
-    (void)data;
-    (void)n;
+    check(a, n);
+    for (std::uint32_t i = 0; i < n; ++i) {
+        bytes_[a + i] = data[i];
+    }
 }
 
 }  // namespace socsim
