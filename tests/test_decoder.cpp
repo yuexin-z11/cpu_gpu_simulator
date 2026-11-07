@@ -42,5 +42,14 @@ TEST(op_class_groups) {
     EXPECT(op_class(Op::Beq) == OpClass::Branch);
 }
 
+TEST(decode_bne_forward) {
+    // bne x1, x0, 8  ->  0x00009463
+    const DecodedInst d = decode(0x00009463);
+    EXPECT(d.op == Op::________);
+    EXPECT_EQ(d.rs1, ___);
+    EXPECT_EQ(d.rs2, ___);
+    EXPECT_EQ(d.imm, ___);
+}
+
 // TODO: one test per instruction format (R, I, S, B, U, J), sign-extended
 // immediates, M-extension edge cases, and csrr.

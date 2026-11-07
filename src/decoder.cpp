@@ -123,6 +123,45 @@ DecodedInst decode(Word raw) {
         }
     }
 
+    // lui: load upper immediate
+    if (opcode == 0x37) {
+        d.op  = Op::Lui;
+        d.imm = static_cast<std::int32_t>(raw & 0xFFFFF000);
+    }
+
+    // auipc: add upper immediate to pc
+    if (opcode == 0x17) {
+        d.op  = Op::Auipc;
+        d.imm = static_cast<std::int32_t>(raw & 0xFFFFF000);
+    }
+
+    // branch instructions
+    if (opcode == 0x63) {
+        // imm[12] and sign: bit 31 -> bit 12 and up
+        // imm[10:5]: bits 30..25 -> bits 10..5
+        // imm[4:1]: bits 11..8 -> bits 4..1
+        // imm[11]: bit 7 -> bit 11
+        d.imm = ((static_cast<std::int32_t>(raw) >> 19) & ~0xFFF)
+              | static_cast<std::int32_t>((raw >> 20) & 0x7E0)
+              | static_cast<std::int32_t>((raw >> 7) & 0x1E)
+              | static_cast<std::int32_t>((raw << 11) & 0x800);
+        switch (funct3) {
+        // beq: branch if equal
+        case 0: d.op = Op::Beq;  break;
+        // bne: branch if not equal
+        case 1: d.op = Op::Bne; break;
+        // blt: branch if less than (signed)
+        case 4: d.op = Op::Blt; break;
+        // bge: branch if greater or equal (signed)
+        case 5: d.op = Op::Bge;  break;
+        // bltu: branch if less than unsigned
+        case 6: d.op = Op::Bltu; break;
+        // bgeu: branch if greater or equal unsigned
+        case 7: d.op = Op::Bgeu; break;
+        default: break;   // 2 and 3 are not valid branches
+        }
+    }
+
     return d;
 }
 
