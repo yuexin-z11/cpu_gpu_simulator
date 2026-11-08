@@ -93,3 +93,9 @@ TEST(decode_csrr_lane_id) {
     EXPECT_EQ(d.rs1, 0);
     EXPECT_EQ(d.csr, 0xCC0);
 }
+
+// fence: must be recognized, not invalid
+TEST(decode_fence) {
+    // fence  ->  0x0FF0000F
+    EXPECT(decode(0x0FF0000F).op == Op::fence);
+}

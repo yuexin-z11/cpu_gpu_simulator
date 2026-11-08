@@ -213,6 +213,11 @@ DecodedInst decode(Word raw) {
         }
     }
 
+    // fence: memory ordering (no effect in this simulator)
+    if (opcode == 0x0F) {
+        d.op = Op::fence;
+    }
+
     return d;
 }
 
