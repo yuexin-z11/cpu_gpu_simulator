@@ -14,9 +14,9 @@ void FlatMemory::check(Addr a, std::uint32_t n) const {
 
     // check valid addresses
     if (a >= bytes_.size() || end > bytes_.size()) {
-        throw std::out_of_range("memory access out of range: address " +
-                                std::to_string(a) + ", " + std::to_string(n) +
-                                " bytes, memory size " + std::to_string(bytes_.size()));
+        throw std::out_of_range("memory access out of range: address " + std::to_string(a) + ", "
+                                + std::to_string(n) + " bytes, memory size "
+                                + std::to_string(bytes_.size()));
     }
 }
 
@@ -28,16 +28,15 @@ std::uint8_t FlatMemory::read8(Addr a) const {
 std::uint16_t FlatMemory::read16(Addr a) const {
     // little-endian
     check(a, 2);
-    return static_cast<std::uint16_t>(bytes_[a+1] << 8 | bytes_[a]);
+    return static_cast<std::uint16_t>(bytes_[a + 1] << 8 | bytes_[a]);
 }
 
 std::uint32_t FlatMemory::read32(Addr a) const {
     // little-endian
     check(a, 4);
-    return  static_cast<std::uint32_t>(bytes_[a])
-         | (static_cast<std::uint32_t>(bytes_[a + 1]) << 8)
-         | (static_cast<std::uint32_t>(bytes_[a + 2]) << 16)
-         | (static_cast<std::uint32_t>(bytes_[a + 3]) << 24);
+    return static_cast<std::uint32_t>(bytes_[a]) | (static_cast<std::uint32_t>(bytes_[a + 1]) << 8)
+           | (static_cast<std::uint32_t>(bytes_[a + 2]) << 16)
+           | (static_cast<std::uint32_t>(bytes_[a + 3]) << 24);
 }
 
 void FlatMemory::write8(Addr a, std::uint8_t v) {
@@ -48,17 +47,17 @@ void FlatMemory::write8(Addr a, std::uint8_t v) {
 void FlatMemory::write16(Addr a, std::uint16_t v) {
     // little-endian
     check(a, 2);
-    bytes_[a] = v & 0xFF;
-    bytes_[a+1] = v >> 8;
+    bytes_[a]     = v & 0xFF;
+    bytes_[a + 1] = v >> 8;
 }
 
 void FlatMemory::write32(Addr a, std::uint32_t v) {
     // little-endian
     check(a, 4);
-    bytes_[a] = v & 0xFF;
-    bytes_[a+1] = v >> 8;
-    bytes_[a+2] = v >> 16;
-    bytes_[a+3] = v >> 24;
+    bytes_[a]     = v & 0xFF;
+    bytes_[a + 1] = v >> 8;
+    bytes_[a + 2] = v >> 16;
+    bytes_[a + 3] = v >> 24;
 }
 
 // copies n bytes from data into memory starting at address a

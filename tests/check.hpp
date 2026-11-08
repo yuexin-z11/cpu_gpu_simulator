@@ -1,5 +1,5 @@
 #pragma once
-// Minimal test helpers so the checks need no external framework.
+// minimal test helpers so the checks need no external framework
 
 #include <functional>
 #include <iostream>
@@ -34,17 +34,17 @@ struct Failure {
 #define CHECK_CONCAT2(a, b) a##b
 #define CHECK_CONCAT(a, b) CHECK_CONCAT2(a, b)
 
-// TEST(name) { ... }  registers a test function.
-#define TEST(name)                                                        \
-    static void name();                                                   \
-    static check::Register CHECK_CONCAT(reg_, name)(#name, name);         \
+// TEST(name) { ... }  registers a test function
+#define TEST(name)                                                \
+    static void name();                                           \
+    static check::Register CHECK_CONCAT(reg_, name)(#name, name); \
     static void name()
 
-#define EXPECT(cond)                                                      \
-    do {                                                                  \
-        if (!(cond))                                                      \
-            throw check::Failure{std::string(__FILE__) + ":" +            \
-                                 std::to_string(__LINE__) + ": " #cond};  \
+#define EXPECT(cond)                                                                    \
+    do {                                                                                \
+        if (!(cond))                                                                    \
+            throw check::Failure{std::string(__FILE__) + ":" + std::to_string(__LINE__) \
+                                 + ": " #cond};                                         \
     } while (0)
 
 #define EXPECT_EQ(a, b) EXPECT((a) == (b))

@@ -5,10 +5,7 @@
 namespace socsim {
 
 Simulator::Simulator(const ChipConfig& cfg)
-    : cfg_(cfg),
-      mem_(cfg),
-      cpu_(cfg.cpu, mem_, log_),
-      gpu_(cfg.gpu, mem_, log_) {}
+    : cfg_(cfg), mem_(cfg), cpu_(cfg.cpu, mem_, log_), gpu_(cfg.gpu, mem_, log_) {}
 
 void Simulator::load_program(const std::string& elf_path) {
     const LoadedProgram prog = load_elf(elf_path, mem_.data());
@@ -27,11 +24,11 @@ RunResult Simulator::run() {
         gpu_.step(now_);
         ++now_;
     }
-    // TODO: copy stats from cpu_, gpu_, and mem_ (caches and DRAM).
+    // TODO: copy stats from cpu_, gpu_, and mem_ (caches and DRAM)
     r.total_cycles = now_;
-    r.exit_code = cpu_.exit_code();
-    r.passed = cpu_.halted() && cpu_.exit_code() == 0;
-    r.exit_reason = cpu_.halted() ? "exit" : "max_cycles";
+    r.exit_code    = cpu_.exit_code();
+    r.passed       = cpu_.halted() && cpu_.exit_code() == 0;
+    r.exit_reason  = cpu_.halted() ? "exit" : "max_cycles";
     return r;
 }
 

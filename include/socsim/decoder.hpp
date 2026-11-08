@@ -1,5 +1,5 @@
 #pragma once
-// RV32IM instruction decoding, shared by the CPU and GPU.
+// RV32IM instruction decoding, shared by the CPU and GPU
 
 #include <cstdint>
 
@@ -7,32 +7,34 @@
 
 namespace socsim {
 
+// clang-format off
 enum class Op : std::uint8_t {
-    Invalid,
+    invalid,
     // RV32I
-    Lui, Auipc, Jal, Jalr,
-    Beq, Bne, Blt, Bge, Bltu, Bgeu,
-    Lb, Lh, Lw, Lbu, Lhu, Sb, Sh, Sw,
-    Addi, Slti, Sltiu, Xori, Ori, Andi, Slli, Srli, Srai,
-    Add, Sub, Sll, Slt, Sltu, Xor, Srl, Sra, Or, And,
-    Fence, Ecall, Ebreak,
+    lui, auipc, jal, jalr,
+    beq, bne, blt, bge, bltu, bgeu,
+    lb, lh, lw, lbu, lhu, sb, sh, sw,
+    addi, slti, sltiu, xori, ori, andi, slli, srli, srai,
+    add, sub, sll, slt, sltu, xor_, srl, sra, or_, and_,
+    fence, ecall, ebreak,
     // Zicsr (only csrrs with rs1 = x0, i.e. `csrr`, is meaningful here)
-    Csrrw, Csrrs, Csrrc, Csrrwi, Csrrsi, Csrrci,
+    csrrw, csrrs, csrrc, csrrwi, csrrsi, csrrci,
     // M extension
-    Mul, Mulh, Mulhsu, Mulhu, Div, Divu, Rem, Remu,
+    mul, mulh, mulhsu, mulhu, div, divu, rem, remu,
 };
+// clang-format on
 
-// Used to pick the cycle cost of an instruction.
-enum class OpClass : std::uint8_t { Alu, Mul, Div, Branch, Load, Store, System };
+// used to pick the cycle cost of an instruction
+enum class OpClass : std::uint8_t { alu, mul, div, branch, load, store, system };
 
 struct DecodedInst {
-    Op op = Op::Invalid;
-    std::uint8_t rd = 0;
-    std::uint8_t rs1 = 0;
-    std::uint8_t rs2 = 0;
-    std::int32_t imm = 0;
+    Op op             = Op::invalid;
+    std::uint8_t rd   = 0;
+    std::uint8_t rs1  = 0;
+    std::uint8_t rs2  = 0;
+    std::int32_t imm  = 0;
     std::uint16_t csr = 0;
-    Word raw = 0;
+    Word raw          = 0;
 };
 
 DecodedInst decode(Word raw);

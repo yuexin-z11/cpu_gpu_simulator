@@ -27,8 +27,12 @@ TEST(flat_memory_word_round_trip) {
     FlatMemory mem(16);
     mem.write32(4, 0x11223344);
 
-    EXPECT_EQ(mem.read32(4), 0x11223344u);  // reads back the same value
-    EXPECT_EQ(mem.read8(4), 0x44);          // low byte at the lowest address
-    EXPECT_EQ(mem.read8(7), 0x11);          // high byte at the highest address
-    EXPECT_EQ(mem.read16(4), 0x3344);       // lower half of the word
+    // reads back the same value
+    EXPECT_EQ(mem.read32(4), 0x11223344u);
+    // low byte at the lowest address
+    EXPECT_EQ(mem.read8(4), 0x44);
+    // high byte at the highest address
+    EXPECT_EQ(mem.read8(7), 0x11);
+    // lower half of the word
+    EXPECT_EQ(mem.read16(4), 0x3344);
 }

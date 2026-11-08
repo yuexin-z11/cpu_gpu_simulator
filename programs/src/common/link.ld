@@ -1,5 +1,5 @@
-/* Static layout for SoCSim programs. 0x00010000-0x00010FFF is reserved
- * for MMIO (launch packet, doorbell, fence). */
+/* static layout for SoCSim programs. 0x00010000-0x00010FFF is reserved
+ * for MMIO (launch packet, doorbell, fence) */
 ENTRY(_start)
 
 SECTIONS

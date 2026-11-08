@@ -1,0 +1,25 @@
+# formatting for all C, C++ and CUDA files
+# run: clang-format -i <files>, or "Format Document" in VS Code
+BasedOnStyle: Google
+Language: Cpp
+Standard: c++17
+IndentWidth: 4
+ColumnLimit: 100
+AccessModifierOffset: -4
+IndentCaseLabels: false
+NamespaceIndentation: None
+FixNamespaceComments: true
+DerivePointerAlignment: false
+PointerAlignment: Left
+SpacesBeforeTrailingComments: 2
+AllowShortCaseLabelsOnASingleLine: true
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: WithoutElse
+AllowShortLoopsOnASingleLine: false
+AllowShortBlocksOnASingleLine: Empty
+AlignConsecutiveAssignments:
+  Enabled: true
+  AcrossComments: false
+BreakBeforeBinaryOperators: NonAssignment
+IncludeBlocks: Preserve
+SortIncludes: CaseSensitive

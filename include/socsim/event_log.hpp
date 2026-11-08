@@ -1,6 +1,6 @@
 #pragma once
-// Optional record of what happened each cycle, used by the replay window.
-// Recording is off by default and never changes simulation results.
+// optional record of what happened each cycle, used by the replay window
+// recording is off by default and never changes simulation results
 
 #include <cstdint>
 #include <vector>
@@ -10,17 +10,21 @@
 namespace socsim {
 
 enum class EventKind : std::uint8_t {
-    CpuPhase,      // value: 0 = setup, 1 = launch, 2 = waiting on fence, 3 = check
-    WarpIssue,     // id = warp, value = active lane mask
-    CacheAccess,   // id = cache (0 cpu_l1, 1 gpu_l1, 2 l2), value = 1 hit / 0 miss
-    DramAccess,    // value = bytes
-    KernelDone,
+    // value: 0 = setup, 1 = launch, 2 = waiting on fence, 3 = check
+    cpu_phase,
+    // id = warp, value = active lane mask
+    warp_issue,
+    // id = cache (0 cpu_l1, 1 gpu_l1, 2 l2), value = 1 hit / 0 miss
+    cache_access,
+    // value = bytes
+    dram_access,
+    kernel_done,
 };
 
 struct Event {
-    Cycle cycle = 0;
-    EventKind kind = EventKind::CpuPhase;
-    std::uint32_t id = 0;
+    Cycle cycle         = 0;
+    EventKind kind      = EventKind::cpu_phase;
+    std::uint32_t id    = 0;
     std::uint32_t value = 0;
 };
 

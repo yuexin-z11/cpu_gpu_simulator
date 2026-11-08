@@ -1,5 +1,5 @@
 #pragma once
-// Routes requests through L1 -> shared L2 -> DRAM and returns latency.
+// routes requests through L1 -> shared L2 -> DRAM and returns latency
 
 #include "socsim/cache.hpp"
 #include "socsim/config.hpp"
@@ -13,8 +13,8 @@ class MemorySystem {
 public:
     explicit MemorySystem(const ChipConfig& cfg);
 
-    // Timing only: returns the number of cycles the request takes when
-    // issued at `now`. The caller reads/writes data through data().
+    // timing only: returns the number of cycles the request takes when
+    // issued at `now`. the caller reads/writes data through data()
     Cycle access(Cycle now, const MemRequest& req);
 
     FlatMemory& data() { return data_; }

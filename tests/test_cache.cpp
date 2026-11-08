@@ -10,6 +10,6 @@ TEST(cache_hit_rate_empty) {
 }
 
 // TODO:
-//  - first access misses, second access to the same line hits
-//  - LRU eviction when ways + 1 lines map to one set
-//  - DRAM bandwidth: back-to-back requests queue behind each other
+// - first access misses, second access to the same line hits
+// - LRU eviction when ways + 1 lines map to one set
+// - DRAM bandwidth: back-to-back requests queue behind each other

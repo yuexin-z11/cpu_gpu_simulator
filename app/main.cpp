@@ -1,4 +1,4 @@
-// socsim command-line program: run, sweep, bench.
+// socsim command-line program: run, sweep, bench
 
 #include <cstdlib>
 #include <exception>
@@ -15,14 +15,13 @@
 namespace {
 
 void usage() {
-    std::cerr <<
-        "usage:\n"
-        "  socsim run   --config <chip.json> --program <prog.elf>\n"
-        "  socsim sweep --sweep <sweep.json> --threads <n> --out <results.csv>\n"
-        "  socsim bench --sweep <sweep.json> --threads <n,n,...> --out <speedup.csv>\n";
+    std::cerr << "usage:\n"
+                 "  socsim run   --config <chip.json> --program <prog.elf>\n"
+                 "  socsim sweep --sweep <sweep.json> --threads <n> --out <results.csv>\n"
+                 "  socsim bench --sweep <sweep.json> --threads <n,n,...> --out <speedup.csv>\n";
 }
 
-// Parses "--key value" pairs after the subcommand.
+// parses "--key value" pairs after the subcommand
 std::map<std::string, std::string> parse_flags(int argc, char** argv) {
     std::map<std::string, std::string> flags;
     for (int i = 2; i < argc; ++i) {
@@ -60,8 +59,8 @@ int cmd_run(const std::map<std::string, std::string>& flags) {
 
 int cmd_sweep(const std::map<std::string, std::string>& flags) {
     const socsim::SweepSpec spec = socsim::load_sweep(require(flags, "sweep"));
-    const unsigned threads = static_cast<unsigned>(std::stoul(require(flags, "threads")));
-    const auto results = socsim::run_sweep(spec, threads);
+    const unsigned threads       = static_cast<unsigned>(std::stoul(require(flags, "threads")));
+    const auto results           = socsim::run_sweep(spec, threads);
     socsim::write_sweep_csv(require(flags, "out"), spec, results);
     return 0;
 }

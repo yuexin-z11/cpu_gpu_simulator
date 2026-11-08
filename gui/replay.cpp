@@ -12,7 +12,7 @@ void Replay::load(const socsim::ChipConfig& cfg, const std::string& program) {
     sim.event_log().set_enabled(true);
     sim.load_program(program);
     result_ = sim.run();
-    log_ = sim.event_log();
+    log_    = sim.event_log();
     cursor_ = 0;
     loaded_ = true;
 }

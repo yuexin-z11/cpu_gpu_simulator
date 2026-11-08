@@ -12,11 +12,11 @@ LoadedProgram load_elf(const std::string& path, FlatMemory& mem) {
 
     LoadedProgram prog;
     // TODO:
-    //  1. Read the ELF header; check magic, ELFCLASS32, little-endian,
-    //     e_machine == EM_RISCV (243), e_type == ET_EXEC.
-    //  2. For each program header with p_type == PT_LOAD, copy p_filesz
-    //     bytes to p_vaddr and zero-fill up to p_memsz.
-    //  3. prog.entry = e_entry; choose stack_top near the top of memory.
+    // 1. read the ELF header; check magic, ELFCLASS32, little-endian,
+    // e_machine == EM_RISCV (243), e_type == ET_EXEC
+    // 2. for each program header with p_type == PT_LOAD, copy p_filesz
+    // bytes to p_vaddr and zero-fill up to p_memsz
+    // 3. prog.entry = e_entry; choose stack_top near the top of memory
     (void)mem;
     return prog;
 }

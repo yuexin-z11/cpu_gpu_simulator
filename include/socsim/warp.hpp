@@ -1,7 +1,7 @@
 #pragma once
-// A warp: `warp_size` lanes, each with its own registers and pc.
-// Divergence rule: execute at the lowest pc among unfinished lanes;
-// only lanes at that pc are active.
+// a warp: `warp_size` lanes, each with its own registers and pc
+// divergence rule: execute at the lowest pc among unfinished lanes;
+// only lanes at that pc are active
 
 #include <cstdint>
 #include <vector>
@@ -15,14 +15,17 @@ class Warp {
 public:
     Warp(std::uint32_t warp_id, std::uint32_t warp_size);
 
-    // Sets every lane's pc to `entry`, a0 to `args_ptr`, ra to the
-    // sentinel return address, and gives each lane its own stack.
+    // sets every lane's pc to `entry`, a0 to `args_ptr`, ra to the
+    // sentinel return address, and gives each lane its own stack
     void launch(Addr entry, Addr args_ptr, Addr stack_base, std::uint32_t stack_bytes);
 
     bool done() const;
-    Addr next_pc() const;                    // lowest pc among unfinished lanes
-    std::vector<std::uint32_t> active_lanes() const;  // lanes at next_pc()
-    std::uint32_t active_mask() const;       // bit i set = lane i active
+    // lowest pc among unfinished lanes
+    Addr next_pc() const;
+    // lanes at next_pc()
+    std::vector<std::uint32_t> active_lanes() const;
+    // bit i set = lane i active
+    std::uint32_t active_mask() const;
 
     RegFile& lane(std::uint32_t i) { return lanes_[i]; }
     const RegFile& lane(std::uint32_t i) const { return lanes_[i]; }
@@ -31,9 +34,10 @@ public:
     std::uint32_t id() const { return id_; }
     std::uint32_t size() const { return static_cast<std::uint32_t>(lanes_.size()); }
 
-    Cycle ready_at = 0;  // warp cannot issue before this cycle
+    // warp cannot issue before this cycle
+    Cycle ready_at = 0;
 
-    // A lane that returns to this address has finished the kernel.
+    // a lane that returns to this address has finished the kernel
     static constexpr Addr kExitSentinel = 0xFFFF'FFF0;
 
 private:

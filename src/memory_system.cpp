@@ -10,8 +10,8 @@ MemorySystem::MemorySystem(const ChipConfig& cfg)
 
 Cycle MemorySystem::access(Cycle now, const MemRequest& req) {
     // TODO: pick the L1 by req.source; on an L1 miss go to L2; on an L2
-    // miss go to DRAM for one line. Return the total latency in cycles.
-    // MMIO addresses (doorbell, fence) should bypass the caches.
+    // miss go to DRAM for one line. return the total latency in cycles
+    // MMIO addresses (doorbell, fence) should bypass the caches
     (void)now;
     (void)req;
     return 1;

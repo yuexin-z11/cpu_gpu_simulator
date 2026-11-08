@@ -1,5 +1,5 @@
 #pragma once
-// Set-associative cache that tracks tags only, to decide hit or miss.
+// set-associative cache that tracks tags only, to decide hit or miss
 
 #include <cstdint>
 #include <string>
@@ -11,7 +11,7 @@
 namespace socsim {
 
 struct CacheStats {
-    std::uint64_t hits = 0;
+    std::uint64_t hits   = 0;
     std::uint64_t misses = 0;
     double hit_rate() const;
 };
@@ -20,8 +20,8 @@ class Cache {
 public:
     Cache(std::string name, const CacheConfig& cfg);
 
-    // Looks up the line holding `addr`. Updates LRU state and fills the
-    // line on a miss. Returns true on a hit.
+    // looks up the line holding `addr`. updates LRU state and fills the
+    // line on a miss. returns true on a hit
     bool access(Addr addr, bool is_write);
 
     Addr line_addr(Addr addr) const;
@@ -32,14 +32,16 @@ public:
 private:
     struct Line {
         bool valid = false;
-        Addr tag = 0;
-        std::uint64_t last_use = 0;  // for LRU
+        Addr tag   = 0;
+        // for LRU
+        std::uint64_t last_use = 0;
     };
 
     std::string name_;
     CacheConfig cfg_;
     std::uint32_t num_sets_ = 0;
-    std::vector<Line> lines_;  // num_sets_ * cfg_.ways
+    // num_sets_ * cfg_.ways
+    std::vector<Line> lines_;
     std::uint64_t use_counter_ = 0;
     CacheStats stats_;
 };

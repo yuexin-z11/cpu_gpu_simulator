@@ -1,4 +1,4 @@
-// socsim-gui: runs a program with event recording and replays it.
+// socsim-gui: runs a program with event recording and replays it
 
 #include <cstdio>
 #include <cstring>
@@ -19,8 +19,10 @@ int main(int argc, char** argv) {
     gui::UiState ui;
     std::string config_path = SOCSIM_SOURCE_DIR "/configs/default.json";
     for (int i = 1; i + 1 < argc; ++i) {
-        if (std::strcmp(argv[i], "--program") == 0) ui.program = argv[++i];
-        else if (std::strcmp(argv[i], "--config") == 0) config_path = argv[++i];
+        if (std::strcmp(argv[i], "--program") == 0)
+            ui.program = argv[++i];
+        else if (std::strcmp(argv[i], "--config") == 0)
+            config_path = argv[++i];
     }
     try {
         ui.config = socsim::load_config(config_path);
@@ -60,7 +62,7 @@ int main(int argc, char** argv) {
         glfwPollEvents();
         const double now = glfwGetTime();
         if (replay.playing && replay.loaded()) {
-            // TODO: carry the fractional remainder so slow speeds still advance.
+            // TODO: carry the fractional remainder so slow speeds still advance
             replay.step(static_cast<socsim::Cycle>((now - last) * replay.cycles_per_second));
         }
         last = now;
@@ -76,7 +78,7 @@ int main(int argc, char** argv) {
         gui::draw_stats(replay);
 
         ImGui::Render();
-        // Clearing is left to ImGui's background; no direct GL calls here.
+        // clearing is left to ImGui's background; no direct GL calls here
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         glfwSwapBuffers(window);
     }

@@ -10,6 +10,6 @@ TEST(default_config_loads) {
 }
 
 // TODO: for each programs/bin/*.elf, run it on configs/default.json and
-// EXPECT(result.passed). Then check the measurable-result trends:
-//  - vecadd_strided has more lines per mem instruction than vecadd
-//  - branchy ~0.5 divergence efficiency, branchy_aligned ~1.0
+// EXPECT(result.passed). then check the measurable-result trends:
+// - vecadd_strided has more lines per mem instruction than vecadd
+// - branchy ~0.5 divergence efficiency, branchy_aligned ~1.0

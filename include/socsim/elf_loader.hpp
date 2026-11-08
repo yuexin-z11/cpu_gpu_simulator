@@ -1,5 +1,5 @@
 #pragma once
-// Loads a static RV32IM ELF file into FlatMemory.
+// loads a static RV32IM ELF file into FlatMemory
 
 #include <string>
 
@@ -9,12 +9,14 @@
 namespace socsim {
 
 struct LoadedProgram {
-    Addr entry = 0;       // CPU start address (_start)
-    Addr stack_top = 0;   // initial CPU sp
+    // CPU start address (_start)
+    Addr entry = 0;
+    // initial CPU sp
+    Addr stack_top = 0;
 };
 
-// Copies every PT_LOAD segment into `mem` and zero-fills .bss.
-// Throws std::runtime_error if the file is not a 32-bit RISC-V executable.
+// copies every PT_LOAD segment into `mem` and zero-fills .bss
+// throws std::runtime_error if the file is not a 32-bit RISC-V executable
 LoadedProgram load_elf(const std::string& path, FlatMemory& mem);
 
 }  // namespace socsim

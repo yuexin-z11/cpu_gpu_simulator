@@ -1,5 +1,5 @@
 #pragma once
-// Owns one chip and advances its clock until the program exits.
+// owns one chip and advances its clock until the program exits
 
 #include <string>
 
@@ -18,7 +18,7 @@ public:
 
     void load_program(const std::string& elf_path);
 
-    // Runs until the CPU exits or cfg.max_cycles is reached.
+    // runs until the CPU exits or cfg.max_cycles is reached
     RunResult run();
 
     EventLog& event_log() { return log_; }
