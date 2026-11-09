@@ -1,6 +1,7 @@
 #include "check.hpp"
 #include "socsim/cache.hpp"
 #include "socsim/dram.hpp"
+#include "socsim/memory_system.hpp"
 
 using namespace socsim;
 
@@ -57,5 +58,43 @@ TEST(cache_lru_eviction) {
     EXPECT_EQ(c.access(0x080, false), false);
 }
 
-// TODO:
-// - DRAM bandwidth: back-to-back requests queue behind each other
+// dram: latency overlaps, but transfers queue behind each other on the bus
+TEST(dram_bandwidth_queueing) {
+    Dram d(DramConfig{});
+
+    // 64 B at cycle 0: bus 0-4, done 0 + 100 + 4
+    EXPECT_EQ(d.access(0, 64), 104u);
+    // another 64 B at cycle 0: waits for the bus until cycle 4
+    EXPECT_EQ(d.access(0, 64), 108u);
+    // 64 B at cycle 200: the bus has been idle, so no waiting
+    EXPECT_EQ(d.access(200, 64), 304u);
+    // 65 B at cycle 200: waits for the bus, and 65 B rounds up to 5 cycles
+    EXPECT_EQ(d.access(200, 65), 309u);
+
+    EXPECT_EQ(d.stats().requests, 4u);
+    EXPECT_EQ(d.stats().bytes, 257u);
+}
+
+// memory system: L1 -> L2 -> DRAM latency, separate L1s, shared L2, MMIO bypass
+TEST(memory_system_latency) {
+    MemorySystem m(ChipConfig{});
+    const MemRequest cpu_rd{0x2000, 4, false, Requester::cpu};
+    const MemRequest gpu_rd{0x2000, 4, false, Requester::gpu};
+
+    // cpu, cold: L1 miss + L2 miss + DRAM (1 + 1 + 100 + 4)
+    EXPECT_EQ(m.access(1000, cpu_rd), 106u);
+    // cpu again: L1 hit
+    EXPECT_EQ(m.access(2000, cpu_rd), 1u);
+    // gpu, same address: its own L1 misses, but the shared L2 has it
+    EXPECT_EQ(m.access(3000, gpu_rd), 2u);
+    // doorbell store skips the caches
+    EXPECT_EQ(m.access(4000, MemRequest{mmio::kDoorbell, 4, true, Requester::cpu}), 1u);
+
+    // counters
+    EXPECT_EQ(m.cpu_l1().stats().hits, 1u);
+    EXPECT_EQ(m.cpu_l1().stats().misses, 1u);
+    EXPECT_EQ(m.gpu_l1().stats().misses, 1u);
+    EXPECT_EQ(m.l2().stats().hits, 1u);
+    EXPECT_EQ(m.l2().stats().misses, 1u);
+    EXPECT_EQ(m.dram().stats().requests, 1u);
+}
