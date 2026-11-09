@@ -240,3 +240,89 @@ TEST(execute_multiply) {
     execute(decode(0x0220B333), regs, mem, no_csrs);
     EXPECT_EQ(regs.x[6], 0xFFFFFFFDu);
 }
+
+// divide: rounds toward zero, div by zero, and signed overflow
+TEST(execute_divide) {
+    RegFile regs;
+    FlatMemory mem(64);
+
+    // addi x1, x0, -7  (0xFFFFFFF9)
+    execute(decode(0xFF900093), regs, mem, no_csrs);
+    // addi x2, x0, 2
+    execute(decode(0x00200113), regs, mem, no_csrs);
+
+    // div x3, x1, x2  (-7 / 2 rounds toward zero)
+    execute(decode(0x0220C1B3), regs, mem, no_csrs);
+    EXPECT_EQ(regs.x[3], 0xFFFFFFFDu);
+
+    // rem x4, x1, x2  (sign follows rs1)
+    execute(decode(0x0220E233), regs, mem, no_csrs);
+    EXPECT_EQ(regs.x[4], 0xFFFFFFFFu);
+
+    // divu x5, x1, x2  (0xFFFFFFF9 / 2 as unsigned)
+    execute(decode(0x0220D2B3), regs, mem, no_csrs);
+    EXPECT_EQ(regs.x[5], 0x7FFFFFFCu);
+
+    // remu x6, x1, x2
+    execute(decode(0x0220F333), regs, mem, no_csrs);
+    EXPECT_EQ(regs.x[6], 0x00000001u);
+
+    // div x7, x1, x0  (divide by zero)
+    execute(decode(0x0200C3B3), regs, mem, no_csrs);
+    EXPECT_EQ(regs.x[7], 0xFFFFFFFFu);
+
+    // rem x8, x1, x0  (divide by zero)
+    execute(decode(0x0200E433), regs, mem, no_csrs);
+    EXPECT_EQ(regs.x[8], 0xFFFFFFF9u);
+
+    // lui x9, 0x80000  (INT32_MIN)
+    execute(decode(0x800004B7), regs, mem, no_csrs);
+    // addi x10, x0, -1
+    execute(decode(0xFFF00513), regs, mem, no_csrs);
+
+    // div x11, x9, x10  (overflow)
+    execute(decode(0x02A4C5B3), regs, mem, no_csrs);
+    EXPECT_EQ(regs.x[11], 0x80000000u);
+
+    // rem x12, x9, x10  (overflow)
+    execute(decode(0x02A4E633), regs, mem, no_csrs);
+    EXPECT_EQ(regs.x[12], 0x00000000u);
+}
+
+// system: ecall/ebreak/fence set flags, csrr reads a CSR, illegal ops throw
+TEST(execute_system) {
+    RegFile regs;
+    FlatMemory mem(64);
+
+    // csr reader for a GPU lane: only lane id 7 is allowed
+    auto lane_csrs = [](std::uint16_t c) -> std::optional<Word> {
+        if (c == csr::kLaneId) return 7u;
+        return std::nullopt;
+    };
+
+    // ecall
+    ExecResult r = execute(decode(0x00000073), regs, mem, no_csrs);
+    EXPECT_EQ(r.is_ecall, true);
+    EXPECT_EQ(r.is_ebreak, false);
+
+    // ebreak
+    r = execute(decode(0x00100073), regs, mem, no_csrs);
+    EXPECT_EQ(r.is_ebreak, true);
+
+    // fence
+    r = execute(decode(0x0FF0000F), regs, mem, no_csrs);
+    EXPECT_EQ(r.is_fence, true);
+
+    // csrr x5, 0xCC0  (lane id)
+    execute(decode(0xCC0022F3), regs, mem, lane_csrs);
+    EXPECT_EQ(regs.x[5], 7u);
+
+    // the same csrr on a CPU (no CSRs) is illegal
+    EXPECT_THROW(execute(decode(0xCC0022F3), regs, mem, no_csrs));
+
+    // csrrw x5, 0xCC0, x1  (writes a CSR, not supported)
+    EXPECT_THROW(execute(decode(0xCC0092F3), regs, mem, lane_csrs));
+
+    // all zeros is not a valid instruction
+    EXPECT_THROW(execute(decode(0x00000000), regs, mem, no_csrs));
+}

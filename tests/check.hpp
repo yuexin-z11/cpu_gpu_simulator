@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <iostream>
+#include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
@@ -48,3 +49,15 @@ struct Failure {
     } while (0)
 
 #define EXPECT_EQ(a, b) EXPECT((a) == (b))
+
+// passes only if `expr` throws std::runtime_error
+#define EXPECT_THROW(expr)                    \
+    do {                                      \
+        bool thrown = false;                  \
+        try {                                 \
+            expr;                             \
+        } catch (const std::runtime_error&) { \
+            thrown = true;                    \
+        }                                     \
+        EXPECT(thrown);                       \
+    } while (0)

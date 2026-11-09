@@ -198,13 +198,35 @@ ExecResult execute(const DecodedInst& inst, RegFile& regs, FlatMemory& mem,
             regs.x[inst.rd] = a % b;
         }
         break;
-    default: break;
+    // fence: memory ordering (no effect here, just flagged)
+    case Op::fence: r.is_fence = true; break;
+    // ecall: environment call (the core decides what it means)
+    case Op::ecall: r.is_ecall = true; break;
+    // ebreak: breakpoint
+    case Op::ebreak: r.is_ebreak = true; break;
+    // csrrs with rs1 = x0 is csrr: read a CSR into rd
+    case Op::csrrs: {
+        // our CSRs are read-only, so setting bits is illegal
+        if (inst.rs1 != 0) throw std::runtime_error("csr write not supported");
+        const std::optional<Word> v = read_csr(inst.csr);
+        // this core does not have that CSR
+        if (!v) throw std::runtime_error("unknown csr");
+        regs.x[inst.rd] = *v;
+        break;
+    }
+    // every other CSR op writes a CSR, which is not supported
+    case Op::csrrw:
+    case Op::csrrc:
+    case Op::csrrwi:
+    case Op::csrrsi:
+    case Op::csrrci: throw std::runtime_error("csr write not supported");
+    // anything not handled above is an illegal instruction
+    default: throw std::runtime_error("illegal instruction");
     }
 
     // x0 is always 0, so undo any write to it
     regs.x[0] = 0;
-
-    (void)read_csr;
+    
     return r;
 }
 
