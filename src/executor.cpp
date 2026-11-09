@@ -1,5 +1,6 @@
 #include "socsim/executor.hpp"
 
+#include <limits>
 #include <stdexcept>
 
 namespace socsim {
@@ -21,6 +22,9 @@ ExecResult execute(const DecodedInst& inst, RegFile& regs, FlatMemory& mem,
     // signed views of rs1 and rs2
     const std::int32_t sa = static_cast<std::int32_t>(a);
     const std::int32_t sb = static_cast<std::int32_t>(b);
+
+    // load/store address = rs1 + imm
+    const Addr addr = a + imm;
 
     switch (inst.op) {
     // addi: rd = rs1 + imm
@@ -101,13 +105,105 @@ ExecResult execute(const DecodedInst& inst, RegFile& regs, FlatMemory& mem,
         regs.x[inst.rd] = regs.pc + 4;
         r.next_pc       = (a + imm) & ~1u;
         break;
+    // lb: load byte (sign-extended)
+    case Op::lb:
+        regs.x[inst.rd] = static_cast<Word>(static_cast<std::int8_t>(mem.read8(addr)));
+        r.mem = MemRequest{addr, 1, false, Requester::cpu};
+        break;
+    // lh: load halfword (sign-extended)
+    case Op::lh:
+        regs.x[inst.rd] = static_cast<Word>(static_cast<std::int16_t>(mem.read16(addr)));
+        r.mem = MemRequest{addr, 2, false, Requester::cpu};
+        break;
+    // lw: load word
+    case Op::lw:
+        regs.x[inst.rd] = mem.read32(addr);
+        r.mem = MemRequest{addr, 4, false, Requester::cpu};
+        break;
+    // lbu: load byte unsigned (zero-extended)
+    case Op::lbu:
+        regs.x[inst.rd] = static_cast<Word>(mem.read8(addr));
+        r.mem = MemRequest{addr, 1, false, Requester::cpu};
+        break;
+    // lhu: load halfword unsigned (zero-extended)
+    case Op::lhu:
+        regs.x[inst.rd] = static_cast<Word>(mem.read16(addr));
+        r.mem = MemRequest{addr, 2, false, Requester::cpu};
+        break;
+    // sb: store byte (low 8 bits of rs2)
+    case Op::sb:
+        mem.write8(addr, static_cast<std::uint8_t>(b));
+        r.mem = MemRequest{addr, 1, true, Requester::cpu};
+        break;
+    // sh: store halfword (low 16 bits of rs2)
+    case Op::sh:
+        mem.write16(addr, static_cast<std::uint16_t>(b));
+        r.mem = MemRequest{addr, 2, true, Requester::cpu};
+        break;
+    // sw: store word
+    case Op::sw:
+        mem.write32(addr, b);
+        r.mem = MemRequest{addr, 4, true, Requester::cpu};
+        break;
+    // mul: low 32 bits of rs1 * rs2
+    case Op::mul: regs.x[inst.rd] = a * b; break;
+    // mulh: high 32 bits, signed * signed
+    case Op::mulh:
+        regs.x[inst.rd] = static_cast<Word>(
+            (static_cast<std::int64_t>(sa) * static_cast<std::int64_t>(sb)) >> 32);
+        break;
+    // mulhsu: high 32 bits, signed rs1 * unsigned rs2
+    case Op::mulhsu:
+        regs.x[inst.rd] = static_cast<Word>(
+            (static_cast<std::int64_t>(sa) * static_cast<std::int64_t>(b)) >> 32);
+        break;
+    // mulhu: high 32 bits, unsigned * unsigned
+    case Op::mulhu:
+        regs.x[inst.rd] = static_cast<Word>(
+            (static_cast<std::uint64_t>(a) * static_cast<std::uint64_t>(b)) >> 32);
+        break;
+    // div: signed divide (div by 0 -> -1, overflow -> INT32_MIN)
+    case Op::div:
+        if (b == 0) {
+            regs.x[inst.rd] = 0xFFFFFFFFu;
+        } else if (sa == std::numeric_limits<std::int32_t>::min() && sb == -1) {
+            regs.x[inst.rd] = static_cast<Word>(sa);
+        } else {
+            regs.x[inst.rd] = static_cast<Word>(sa / sb);
+        }
+        break;
+    // divu: unsigned divide
+    case Op::divu:
+        if (b == 0) {
+            regs.x[inst.rd] = 0xFFFFFFFFu;
+        } else {
+            regs.x[inst.rd] = a / b;
+        }
+        break;
+    // rem: signed remainder
+    case Op::rem:
+        if (b == 0) {
+            regs.x[inst.rd] = a;
+        } else if (sa == std::numeric_limits<std::int32_t>::min() && sb == -1) {
+            regs.x[inst.rd] = 0;
+        } else {
+            regs.x[inst.rd] = static_cast<Word>(sa % sb);
+        }
+        break;
+    // remu: unsigned remainder
+    case Op::remu:
+        if (b == 0) {
+            regs.x[inst.rd] = a;
+        } else {
+            regs.x[inst.rd] = a % b;
+        }
+        break;
     default: break;
     }
 
     // x0 is always 0, so undo any write to it
     regs.x[0] = 0;
 
-    (void)mem;
     (void)read_csr;
     return r;
 }

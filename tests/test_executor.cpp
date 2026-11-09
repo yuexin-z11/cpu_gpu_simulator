@@ -144,3 +144,99 @@ TEST(execute_jumps) {
     EXPECT_EQ(r.next_pc, 0x104u);
     EXPECT_EQ(regs.x[1], 0x204u);
 }
+
+// loads: size, sign extension, and little-endian byte order
+TEST(execute_loads) {
+    RegFile regs;
+    FlatMemory mem(64);
+    mem.write32(0x10, 0x12348AF0);
+
+    // addi x1, x0, 16  (base address 0x10)
+    execute(decode(0x01000093), regs, mem, no_csrs);
+
+    // lb x2, 0(x1)  (byte 0xF0, top bit is 1)
+    execute(decode(0x00008103), regs, mem, no_csrs);
+    EXPECT_EQ(regs.x[2], 0xFFFFFFF0u);
+
+    // lbu x3, 0(x1)
+    execute(decode(0x0000C183), regs, mem, no_csrs);
+    EXPECT_EQ(regs.x[3], 0x000000F0u);
+
+    // lh x4, 0(x1)  (halfword = bytes 0x11 and 0x10)
+    execute(decode(0x00009203), regs, mem, no_csrs);
+    EXPECT_EQ(regs.x[4], 0xFFFF8AF0u);
+
+    // lhu x5, 0(x1)
+    execute(decode(0x0000D283), regs, mem, no_csrs);
+    EXPECT_EQ(regs.x[5], 0x00008AF0u);
+
+    // lb x7, 3(x1)  (byte at 0x13, top bit is 0)
+    execute(decode(0x00308383), regs, mem, no_csrs);
+    EXPECT_EQ(regs.x[7], 0x00000012u);
+
+    // lw x6, 0(x1)
+    ExecResult r = execute(decode(0x0000A303), regs, mem, no_csrs);
+    EXPECT_EQ(regs.x[6], 0x12348AF0u);
+    // the timing request
+    EXPECT_EQ(r.mem->addr, 0x10u);
+    EXPECT_EQ(r.mem->size, 4u);
+    EXPECT_EQ(r.mem->is_write, false);
+}
+
+// stores: only the low bytes of rs2 are written, little-endian
+TEST(execute_stores) {
+    RegFile regs;
+    FlatMemory mem(64);
+
+    // addi x1, x0, 32  (base address 0x20)
+    execute(decode(0x02000093), regs, mem, no_csrs);
+    // addi x2, x0, -2
+    execute(decode(0xFFE00113), regs, mem, no_csrs);
+    // addi x3, x0, 0x123
+    execute(decode(0x12300193), regs, mem, no_csrs);
+
+    // sw x2, 0(x1)
+    execute(decode(0x0020A023), regs, mem, no_csrs);
+    EXPECT_EQ(mem.read32(0x20), 0xFFFFFFFEu);
+
+    // sh x2, 8(x1)  (only the low 16 bits of x2)
+    execute(decode(0x00209423), regs, mem, no_csrs);
+    EXPECT_EQ(mem.read32(0x28), 0x0000FFFEu);
+
+    // sb x3, 4(x1)  (only the low 8 bits of x3)
+    ExecResult r = execute(decode(0x00308223), regs, mem, no_csrs);
+    EXPECT_EQ(mem.read32(0x24), 0x00000023u);
+    // the byte after it is untouched
+    EXPECT_EQ(mem.read8(0x25), 0u);
+    // the timing request
+    EXPECT_EQ(r.mem->addr, 0x24u);
+    EXPECT_EQ(r.mem->size, 1u);
+    EXPECT_EQ(r.mem->is_write, true);
+}
+
+// multiply: low half, and high half for signed/unsigned mixes
+TEST(execute_multiply) {
+    RegFile regs;
+    FlatMemory mem(64);
+
+    // addi x1, x0, -2  (0xFFFFFFFE)
+    execute(decode(0xFFE00093), regs, mem, no_csrs);
+    // addi x2, x0, -1  (0xFFFFFFFF)
+    execute(decode(0xFFF00113), regs, mem, no_csrs);
+
+    // mul x3, x1, x2  (-2 * -1 = 2, low 32 bits)
+    execute(decode(0x022081B3), regs, mem, no_csrs);
+    EXPECT_EQ(regs.x[3], 0x00000002u);
+
+    // mulh x4, x1, x2  (signed * signed, high 32 bits)
+    execute(decode(0x02209233), regs, mem, no_csrs);
+    EXPECT_EQ(regs.x[4], 0x00000000u);
+
+    // mulhsu x5, x1, x2  (signed -2 * unsigned 0xFFFFFFFF, high 32 bits)
+    execute(decode(0x0220A2B3), regs, mem, no_csrs);
+    EXPECT_EQ(regs.x[5], 0xFFFFFFFEu);
+
+    // mulhu x6, x1, x2  (unsigned 0xFFFFFFFE * 0xFFFFFFFF, high 32 bits)
+    execute(decode(0x0220B333), regs, mem, no_csrs);
+    EXPECT_EQ(regs.x[6], 0xFFFFFFFDu);
+}
