@@ -28,8 +28,8 @@ bool Cache::access(Addr addr, bool is_write) {
 
     // split the address into set index and tag
     const Addr line = addr / cfg_.line_bytes;
-    const std::uint32_t set = line % 16;
-    const Addr tag = line / 16;
+    const std::uint32_t set = line % num_sets_;
+    const Addr tag = line / num_sets_;
 
     // first Line of this set
     Line* ways = &lines_[static_cast<std::size_t>(set) * cfg_.ways];
@@ -44,20 +44,20 @@ bool Cache::access(Addr addr, bool is_write) {
     }
 
     // miss: pick an empty way, otherwise the least recently used one
-    ++stats_.________;
+    ++stats_.misses;
     std::uint32_t victim = 0;
     for (std::uint32_t w = 0; w < cfg_.ways; ++w) {
         if (!ways[w].valid) {
             victim = w;
             break;
         }
-        if (ways[w].last_use < ways[victim].________) victim = w;
+        if (ways[w].last_use < ways[victim].last_use) victim = w;
     }
 
     // fill the victim with the new line
-    ways[victim].valid    = ________;
+    ways[victim].valid    = true;
     ways[victim].tag      = tag;
-    ways[victim].last_use = ________;
+    ways[victim].last_use = use_counter_;
     return false;
 }
 
