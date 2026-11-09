@@ -10,20 +10,54 @@ double CacheStats::hit_rate() const {
 }
 
 Cache::Cache(std::string name, const CacheConfig& cfg) : name_(std::move(name)), cfg_(cfg) {
-    // TODO: num_sets_ = size_bytes / (line_bytes * ways); size lines_
+    // sets = total size / bytes per set
+    num_sets_ = cfg_.size_bytes / (cfg_.line_bytes * cfg_.ways);
+    // one Line per way in every set, all start invalid
+    lines_.resize(static_cast<std::size_t>(num_sets_) * cfg_.ways);
 }
 
 Addr Cache::line_addr(Addr addr) const {
-    // TODO: clear the offset bits
-    return addr;
+    // clear the offset bits (line_bytes is a power of 2)
+    return addr & ~static_cast<Addr>(cfg_.line_bytes - 1);
 }
 
 bool Cache::access(Addr addr, bool is_write) {
-    // TODO: find the set, compare tags, update LRU, fill on miss,
-    // and count hits/misses. writes allocate (write-back timing is not
-    // modelled)
-    (void)addr;
+    // writes allocate like reads (write-back timing is not modelled)
     (void)is_write;
+    ++use_counter_;
+
+    // split the address into set index and tag
+    const Addr line = addr / cfg_.line_bytes;
+    const std::uint32_t set = line % 16;
+    const Addr tag = line / 16;
+
+    // first Line of this set
+    Line* ways = &lines_[static_cast<std::size_t>(set) * cfg_.ways];
+
+    // hit: a valid way with the same tag
+    for (std::uint32_t w = 0; w < cfg_.ways; ++w) {
+        if (ways[w].valid && ways[w].tag == tag) {
+            ways[w].last_use = use_counter_;
+            ++stats_.hits;
+            return true;
+        }
+    }
+
+    // miss: pick an empty way, otherwise the least recently used one
+    ++stats_.________;
+    std::uint32_t victim = 0;
+    for (std::uint32_t w = 0; w < cfg_.ways; ++w) {
+        if (!ways[w].valid) {
+            victim = w;
+            break;
+        }
+        if (ways[w].last_use < ways[victim].________) victim = w;
+    }
+
+    // fill the victim with the new line
+    ways[victim].valid    = ________;
+    ways[victim].tag      = tag;
+    ways[victim].last_use = ________;
     return false;
 }
 
