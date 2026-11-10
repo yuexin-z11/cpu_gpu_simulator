@@ -1,5 +1,6 @@
 #include "socsim/gpu_core.hpp"
 
+#include <algorithm>
 #include <stdexcept>
 
 #include "socsim/coalescer.hpp"
@@ -94,16 +95,46 @@ void GpuCore::issue(Warp& w, Cycle now) {
         if (r.pc == Warp::kExitSentinel) w.finish_lane(lane);
     }
 
-    // part B: timing and stats go here
-    (void)now;
+    // one issue slot for the instruction itself
+    Cycle t = 1;
+    if (!lane_reqs.empty()) {
+        // merge lanes that touch the same cache line
+        const std::vector<MemRequest> lines =
+            coalesce(lane_reqs, mem_.gpu_l1().config().line_bytes);
+        // the warp waits for its slowest line
+        Cycle worst = 0;
+        for (const MemRequest& q : lines) worst = std::max(worst, mem_.access(now, q));
+        t += worst;
+        ++stats_.warp_mem_instructions;
+        stats_.cache_line_requests += lines.size();
+    }
+    // the warp cannot issue again until this instruction is done
+    w.ready_at = now + t;
+
+    ++stats_.warp_instructions;
+    // for divergence efficiency: active lanes / warp size
+    stats_.active_lane_sum += active.size();
+    // record the issue for the replay window
+    log_.record(now, EventKind::warp_issue, w.id(), static_cast<std::uint32_t>(active.size()));
 }
 
 void GpuCore::step(Cycle now) {
     if (!busy_) return;
     const std::uint32_t i = select_warp(now);
     if (i < warps_.size()) issue(warps_[i], now);
-    // TODO: when every warp is done, write mmio::kFenceDone to
-    // mmio::kFence, set stats_.cycles, busy_ = false
+    
+    // the kernel ends when every warp is done and its last instruction has finished
+    for (const Warp& w : warps_) {
+        if (!w.done()) return;
+        if (w.ready_at > now) return;
+    }
+
+    // tell the CPU the kernel is done
+    mem_.data().write32(mmio::kFence, mmio::kFenceDone);
+    // launch to completion
+    stats_.cycles = now - launch_cycle_;
+    busy_         = false;
+    log_.record(now, EventKind::kernel_done, 0, 0);
 }
 
 }  // namespace socsim
