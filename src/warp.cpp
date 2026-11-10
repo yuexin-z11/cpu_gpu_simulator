@@ -6,12 +6,20 @@ Warp::Warp(std::uint32_t warp_id, std::uint32_t warp_size)
     : id_(warp_id), lanes_(warp_size), finished_(warp_size, true) {}
 
 void Warp::launch(Addr entry, Addr args_ptr, Addr stack_base, std::uint32_t stack_bytes) {
-    // TODO: for each lane: pc = entry, a0 (x10) = args_ptr,
-    // ra (x1) = kExitSentinel, sp (x2) = its own stack top; mark unfinished
-    (void)entry;
-    (void)args_ptr;
-    (void)stack_base;
-    (void)stack_bytes;
+    for (std::uint32_t i = 0; i < size(); ++i) {
+        // fresh registers for every lane
+        RegFile& r = lanes_[i];
+        r          = RegFile{};
+        r.pc       = entry;
+        // a0 = kernel arguments
+        r.x[10] = args_ptr;
+        // ra = sentinel, so `ret` from the kernel marks the lane finished
+        r.x[1] = kExitSentinel;
+        // sp = top of this lane's own stack (stacks grow down)
+        r.x[2] = stack_base + (i + 1) * stack_bytes;
+        finished_[i] = false;
+    }
+    ready_at = 0;
 }
 
 bool Warp::done() const {
@@ -21,13 +29,24 @@ bool Warp::done() const {
 }
 
 Addr Warp::next_pc() const {
-    // TODO: lowest pc among unfinished lanes
-    return 0;
+    // start from the largest address, then take the minimum
+    Addr best = ~Addr{0};
+    for (std::uint32_t i = 0; i < size(); ++i) {
+        // finished lanes do not count
+        if (finished_[i]) continue;
+        if (lanes_[i].pc < best) best = lanes_[i].pc;
+    }
+    return best;
 }
 
 std::vector<std::uint32_t> Warp::active_lanes() const {
-    // TODO: unfinished lanes whose pc == next_pc()
-    return {};
+    std::vector<std::uint32_t> out;
+    const Addr pc = next_pc();
+    for (std::uint32_t i = 0; i < size(); ++i) {
+        // active = unfinished and at the chosen pc
+        if (!finished_[i] && lanes_[i].pc == pc) out.push_back(i);
+    }
+    return out;
 }
 
 std::uint32_t Warp::active_mask() const {

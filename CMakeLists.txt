@@ -80,6 +80,7 @@ if(SOCSIM_BUILD_TESTS)
     tests/test_flat_memory.cpp
     tests/test_executor.cpp
     tests/test_cpu_core.cpp
+    tests/test_warp.cpp
     tests/test_cache.cpp
     tests/test_coalescer.cpp
     tests/test_end_to_end.cpp
