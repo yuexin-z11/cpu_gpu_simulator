@@ -13,6 +13,17 @@ void Simulator::load_program(const std::string& elf_path) {
     now_ = 0;
 }
 
+void Simulator::load_words(Addr base, const std::vector<Word>& words, Addr entry) {
+    for (std::size_t i = 0; i < words.size(); ++i) {
+        // word i sits 4 bytes after word i - 1
+        mem_.data().write32(base + static_cast<Addr>(i * 4), words[i]);
+    }
+    // same stack top as the ELF loader (link.ld __stack_top)
+    cpu_.reset(entry, 0x00F0'0000);
+    // start the clock over
+    now_ = 0;
+}
+
 RunResult Simulator::run() {
     RunResult r;
     while (now_ < cfg_.max_cycles) {
