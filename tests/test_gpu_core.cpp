@@ -45,7 +45,7 @@ TEST(gpu_runs_kernel_and_writes_fence) {
 
     // 9 instructions per warp, no divergence
     EXPECT_EQ(gpu.stats().warp_instructions, 18u);
-    EXPECT_EQ(gpu.stats().active_lane_sum, 72u);
+    EXPECT_EQ(gpu.stats().active_lane_sum, 72u);  // 8 threads * 9 instructions
     // one sw per warp, and each warp's 4 words fit in one 64 B line
     EXPECT_EQ(gpu.stats().warp_mem_instructions, 2u);
     EXPECT_EQ(gpu.stats().cache_line_requests, 2u);
