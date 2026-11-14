@@ -24,7 +24,14 @@ RunResult Simulator::run() {
         gpu_.step(now_);
         ++now_;
     }
-    // TODO: copy stats from cpu_, gpu_, and mem_ (caches and DRAM)
+    // copy every component's stats into the result
+    r.cpu    = cpu_.stats();
+    r.gpu    = gpu_.stats();
+    r.cpu_l1 = mem_.cpu_l1().stats();
+    r.gpu_l1 = mem_.gpu_l1().stats();
+    r.l2     = mem_.l2().stats();
+    r.dram   = mem_.dram().stats();
+
     r.total_cycles = now_;
     r.exit_code    = cpu_.exit_code();
     r.passed       = cpu_.halted() && cpu_.exit_code() == 0;
