@@ -5,7 +5,7 @@
 
 SoCSim is a cycle-counting simulator for a small chip with an RV32IM CPU, a SIMT GPU, and shared memory. It is a deterministic C++17 library with a command-line program, a parallel sweep runner, and a desktop window that replays recorded runs. Its cycle counts are intended for comparing configurations, not predicting a commercial chip.
 
-Work is split into three tiers so complete results exist even if later parts run long:
+Work is split into 3 tiers so complete results exist even if later parts run long:
 
 | Tier | Contents | Done when |
 | --- | --- | --- |
